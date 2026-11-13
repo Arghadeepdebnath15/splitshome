@@ -41,6 +41,10 @@ const itemDebtSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  imageUrl: {
+    type: String,
+    default: ''
+  },
   status: {
     type: String,
     enum: ['owed', 'returned', 'forgiven'],

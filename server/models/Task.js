@@ -64,6 +64,10 @@ const taskSchema = new mongoose.Schema({
     min: [0.5, 'Credit value must be at least 0.5'],
     default: 1
   },
+  proofImage: {
+    type: String,
+    default: ''
+  },
   completedAt: {
     type: Date,
     default: null

@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Modal from '../common/Modal';
 import Avatar from '../common/Avatar';
-import { CheckCircle2, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  CheckCircle2, Sparkles, ArrowRight, ShieldCheck,
+  Camera, Image as ImageIcon, X
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useFlat } from '../../context/FlatContext';
+import { compressImage } from '../../utils/imageUtils';
 
 const TaskCompleteModal = ({ isOpen, onClose, task, onConfirm, loading }) => {
   const { user } = useAuth();
   const { members } = useFlat();
   const [selectedCompleterId, setSelectedCompleterId] = useState(user?._id);
+  const [proofImage, setProofImage] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const fileInputRef = useRef(null);
 
   if (!task) return null;
 
@@ -17,9 +24,30 @@ const TaskCompleteModal = ({ isOpen, onClose, task, onConfirm, loading }) => {
   const selectedCompleter = members.find(m => m._id === selectedCompleterId) || user;
   const creditValue = task.creditValue || 1;
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressing(true);
+    try {
+      const compressed = await compressImage(file, 900, 900, 0.75);
+      setProofImage(compressed);
+    } catch (err) {
+      console.error(err);
+      alert('Could not process image. Please try another photo.');
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = () => {
+    setProofImage('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onConfirm(task._id, selectedCompleterId);
+    onConfirm(task._id, selectedCompleterId, proofImage);
   };
 
   return (
@@ -89,6 +117,83 @@ const TaskCompleteModal = ({ isOpen, onClose, task, onConfirm, loading }) => {
           </div>
         </div>
 
+        {/* Optional Photo Proof Upload */}
+        <div>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              Photo Proof of Completion <span className="text-slate-400 font-normal">(optional)</span>
+            </span>
+            {proofImage && (
+              <button
+                type="button"
+                onClick={removeImage}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Remove
+              </button>
+            )}
+          </label>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageChange}
+            className="hidden"
+            id="task-proof-image-input"
+          />
+
+          {proofImage ? (
+            <div className="relative rounded-2xl overflow-hidden border border-emerald-300 dark:border-emerald-800 bg-slate-100 dark:bg-slate-800 flex items-center justify-center max-h-48 group">
+              <img
+                src={proofImage}
+                alt="Proof of task completion"
+                className="w-full h-44 object-cover rounded-2xl"
+              />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow hover:bg-slate-100"
+                >
+                  Retake Photo
+                </button>
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow hover:bg-rose-500"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isCompressing}
+              className="w-full border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 bg-slate-50/50 dark:bg-slate-850 transition-all"
+            >
+              {isCompressing ? (
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                  <span className="w-4 h-4 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
+                  Optimizing photo...
+                </div>
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-bold">Snap or attach clean chore photo</span>
+                  <span className="text-[10px] text-slate-400">e.g. Clean kitchen sink, tidy room, washed dishes</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
         {/* Dynamic Credit Explainer Box */}
         {isCompletedOnBehalf ? (
           <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800/80">
@@ -126,7 +231,7 @@ const TaskCompleteModal = ({ isOpen, onClose, task, onConfirm, loading }) => {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isCompressing}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-sm transition-all disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4" />
@@ -139,4 +244,3 @@ const TaskCompleteModal = ({ isOpen, onClose, task, onConfirm, loading }) => {
 };
 
 export default TaskCompleteModal;
-

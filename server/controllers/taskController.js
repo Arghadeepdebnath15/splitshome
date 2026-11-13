@@ -314,6 +314,9 @@ const completeTask = async (req, res, next) => {
     task.completedAt = new Date();
     task.completedBy = completer._id;
     task.isCompletedOnBehalf = isCompletedOnBehalf;
+    if (req.body.proofImage) {
+      task.proofImage = req.body.proofImage;
+    }
 
     let transactionRecord = null;
 

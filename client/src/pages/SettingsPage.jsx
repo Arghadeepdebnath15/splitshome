@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useFlat } from '../context/FlatContext';
 import { useTheme } from '../context/ThemeContext';
 import Avatar from '../components/common/Avatar';
-import { Settings, User, Building, Moon, Sun, LogOut, AlertTriangle, Check } from 'lucide-react';
+import {
+  Settings, User, Building, Moon, Sun, LogOut, AlertTriangle,
+  Check, Bell, BellRing, BellOff, Send
+} from 'lucide-react';
 
 const avatarColors = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
@@ -29,6 +32,52 @@ const SettingsPage = () => {
   const [flatAddress, setFlatAddress] = useState(currentFlat?.address || '');
   const [flatSuccess, setFlatSuccess] = useState('');
   const [flatLoading, setFlatLoading] = useState(false);
+
+  // Push Notifications state
+  const [pushPermission, setPushPermission] = useState(
+    typeof window !== 'undefined' && 'Notification' in window
+      ? Notification.permission
+      : 'unsupported'
+  );
+  const [testNotificationStatus, setTestNotificationStatus] = useState('');
+
+  const requestPushPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('This device or browser does not support web push notifications.');
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      setPushPermission(perm);
+      if (perm === 'granted') {
+        sendTestNotification();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendTestNotification = () => {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: 'FlatMate Alerts Active! 🔔',
+        body: 'You will now receive instant alerts for chores, debt updates, and borrowed pantry items.',
+        url: '/dashboard'
+      });
+    } else {
+      try {
+        new Notification('FlatMate Alerts Active! 🔔', {
+          body: 'You will now receive instant alerts for chores, debt updates, and borrowed pantry items.',
+          icon: '/icon-192.png'
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setTestNotificationStatus('Test notification sent to device!');
+    setTimeout(() => setTestNotificationStatus(''), 4000);
+  };
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -218,6 +267,66 @@ const SettingsPage = () => {
           </form>
         </div>
       )}
+
+      {/* Push Notifications Section */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                <BellRing className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                Device Push Notifications
+              </h4>
+              {pushPermission === 'granted' ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
+                  Enabled
+                </span>
+              ) : pushPermission === 'denied' ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300">
+                  Blocked in Browser
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                  Not Enabled
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md">
+              Receive instant alerts on your phone or computer when a flatmate assigns a chore, completes a task on your behalf, or borrows pantry items.
+            </p>
+            {testNotificationStatus && (
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5 animate-fadeIn">
+                <Check className="w-3.5 h-3.5" />
+                {testNotificationStatus}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {pushPermission !== 'granted' ? (
+              <button
+                type="button"
+                onClick={requestPushPermission}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-600/20 transition-all"
+              >
+                <Bell className="w-4 h-4" />
+                <span>Enable Push Notifications</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={sendTestNotification}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 border border-emerald-200 dark:border-emerald-800 transition-colors shadow-sm"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Send Test Alert</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Appearance Section */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center justify-between">

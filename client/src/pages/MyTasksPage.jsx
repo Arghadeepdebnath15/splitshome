@@ -59,11 +59,12 @@ const MyTasksPage = () => {
     }
   };
 
-  const handleConfirmComplete = async (taskId, completedByUserId) => {
+  const handleConfirmComplete = async (taskId, completedByUserId, proofImage) => {
     setModalLoading(true);
     try {
       const res = await api.post(`/tasks/${taskId}/complete`, {
-        completedBy: completedByUserId
+        completedBy: completedByUserId,
+        proofImage: proofImage || undefined
       });
       if (res.data.success) {
         setSelectedTaskToComplete(null);

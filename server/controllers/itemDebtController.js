@@ -54,7 +54,7 @@ const getItemDebts = async (req, res, next) => {
 // @route POST /api/items
 const createItemDebt = async (req, res, next) => {
   try {
-    const { borrowerId, lenderId, itemName, quantity, unit, description } = req.body;
+    const { borrowerId, lenderId, itemName, quantity, unit, description, imageUrl } = req.body;
 
     if (!borrowerId || !lenderId || !itemName || !quantity) {
       return res.status(400).json({
@@ -88,6 +88,7 @@ const createItemDebt = async (req, res, next) => {
       quantity: Number(quantity),
       unit: unit ? unit.trim() : 'units',
       description: description ? description.trim() : '',
+      imageUrl: imageUrl || '',
       status: 'owed',
       history: [{
         action: 'borrowed',

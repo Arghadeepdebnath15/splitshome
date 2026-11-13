@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   CheckCircle2,
   MoreVertical,
   Clock,
   Sparkles,
-  ArrowRightCircle
+  ArrowRightCircle,
+  Camera,
+  Maximize2,
+  X
 } from 'lucide-react';
 import Badge from '../common/Badge';
 import Avatar from '../common/Avatar';
@@ -29,6 +32,7 @@ const TaskCard = ({
   onExchange,
   currentUserId
 }) => {
+  const [showProofModal, setShowProofModal] = useState(false);
   const isAssignedToMe = task.assignedTo?._id === currentUserId;
   const isCompleted = task.status === 'Completed';
   const isOverdue = task.status === 'Overdue';
@@ -118,6 +122,26 @@ const TaskCard = ({
         </div>
       )}
 
+      {/* Proof of completion photo thumbnail */}
+      {task.proofImage && (
+        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowProofModal(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 p-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>View Clean Chore Photo</span>
+          </button>
+          <div
+            onClick={() => setShowProofModal(true)}
+            className="w-8 h-8 rounded-lg overflow-hidden border border-emerald-300 dark:border-emerald-700 cursor-pointer shadow-sm hover:scale-105 transition-transform"
+          >
+            <img src={task.proofImage} alt="Chore proof" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
+
       {/* Action footer */}
       {!isCompleted && (
         <div className="mt-3 pt-2 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/60">
@@ -148,6 +172,40 @@ const TaskCard = ({
               <MoreVertical className="w-4 h-4" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Lightbox Photo Proof Modal */}
+      {showProofModal && task.proofImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setShowProofModal(false)}
+        >
+          <div
+            className="relative max-w-lg w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700 p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-slate-800">
+              <span className="text-sm font-bold text-white flex items-center gap-2">
+                <Camera className="w-4 h-4 text-emerald-400" />
+                <span>Proof: {task.title}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowProofModal(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-2 flex items-center justify-center">
+              <img
+                src={task.proofImage}
+                alt={task.title}
+                className="max-h-[70vh] w-auto max-w-full rounded-2xl object-contain"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

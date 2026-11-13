@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Avatar from '../common/Avatar';
 import Badge from '../common/Badge';
-import { Check, Trash2, ArrowRight, Clock } from 'lucide-react';
+import { Check, Trash2, ArrowRight, Clock, Maximize2, X } from 'lucide-react';
 
 const itemEmojis = {
   onion: '🧅',
@@ -37,6 +37,7 @@ const getItemEmoji = (name = '') => {
 const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, currentUserId, loading }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const isBorrowerMe = itemDebt.borrower?._id === currentUserId;
   const isLenderMe = itemDebt.lender?._id === currentUserId;
@@ -67,11 +68,28 @@ const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, currentUserId, loadi
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        {/* Item Emoji & Details */}
+        {/* Item Image or Emoji & Details */}
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
-            {emoji}
-          </div>
+          {itemDebt.imageUrl ? (
+            <div
+              onClick={() => setShowImageModal(true)}
+              className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 cursor-pointer group shadow-sm border border-slate-200 dark:border-slate-700"
+              title="Click to view photo"
+            >
+              <img
+                src={itemDebt.imageUrl}
+                alt={itemDebt.itemName}
+                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                <Maximize2 className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+              {emoji}
+            </div>
+          )}
 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -184,6 +202,39 @@ const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, currentUserId, loadi
           )}
         </div>
       </div>
+      {/* Lightbox Photo Preview Modal */}
+      {showImageModal && itemDebt.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div
+            className="relative max-w-lg w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700 p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-slate-800">
+              <span className="text-sm font-bold text-white flex items-center gap-2">
+                <span>{emoji}</span>
+                <span>{itemDebt.itemName} ({itemDebt.quantity} {itemDebt.unit})</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowImageModal(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-2 flex items-center justify-center">
+              <img
+                src={itemDebt.imageUrl}
+                alt={itemDebt.itemName}
+                className="max-h-[70vh] w-auto max-w-full rounded-2xl object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

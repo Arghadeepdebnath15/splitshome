@@ -48,6 +48,27 @@ export const SocketProvider = ({ children }) => {
           link: notification.link
         });
         setLastEvent({ type: 'notification', data: notification });
+
+        // Native System Push Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: 'SHOW_NOTIFICATION',
+              title: notification.title || 'FlatMate Notification',
+              body: notification.message || '',
+              url: notification.link || '/'
+            });
+          } else {
+            try {
+              new Notification(notification.title || 'FlatMate Notification', {
+                body: notification.message || '',
+                icon: '/icon-192.png'
+              });
+            } catch (e) {
+              console.log('Native notification error:', e);
+            }
+          }
+        }
       });
 
       // Task events

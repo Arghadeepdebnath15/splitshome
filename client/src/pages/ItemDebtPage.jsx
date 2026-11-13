@@ -39,14 +39,14 @@ const ItemDebtPage = () => {
     fetchItems();
   }, [filter, status, lastEvent]);
 
-  const handleCreateItemDebt = async (formData) => {
+  const handleCreateItemDebt = async (formDataArray) => {
     setModalLoading(true);
     try {
-      const res = await api.post('/items', formData);
-      if (res.data.success) {
-        setIsModalOpen(false);
-        fetchItems();
-      }
+      // formDataArray is always an array (1 or more records)
+      const records = Array.isArray(formDataArray) ? formDataArray : [formDataArray];
+      await Promise.all(records.map(record => api.post('/items', record)));
+      setIsModalOpen(false);
+      fetchItems();
     } catch (err) {
       console.error(err);
     } finally {
@@ -64,12 +64,15 @@ const ItemDebtPage = () => {
   };
 
   const handleDeleteItem = async (id) => {
-    if (!window.confirm('Delete this borrowed item record?')) return;
     try {
+      // Optimistic update for instant visual response
+      setItemDebts(prev => prev.filter(item => item._id !== id));
       await api.delete(`/items/${id}`);
       fetchItems();
     } catch (err) {
-      console.error(err);
+      console.error('Delete item failed:', err);
+      fetchItems(); // revert state
+      alert(err.response?.data?.message || 'Could not delete item record. Please try again.');
     }
   };
 

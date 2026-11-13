@@ -30,39 +30,18 @@ connectDB();
 
 // Setup Socket.IO
 const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => {
-      if (!origin || process.env.NODE_ENV !== 'production') return callback(null, true);
-      const allowed = process.env.CLIENT_URL
-        ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-        : ['http://localhost:5173'];
-      if (allowed.includes(origin)) return callback(null, true);
-      callback(new Error('Not allowed by CORS'));
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
+  cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] }
 });
 
 initSocket(io);
 
-// Middleware
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-  : ['http://localhost:5173'];
-
+// Middleware — open CORS so Vercel frontend can reach Render backend
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.options('*', cors()); // handle all preflight requests
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 

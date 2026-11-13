@@ -1,0 +1,21 @@
+{
+  "name": "flatmate-app",
+  "version": "1.0.0",
+  "description": "FlatMate - Shared Living Management System & Chore Debt Tracker",
+  "scripts": {
+    "server": "cd server && node index.js",
+    "client": "cd client && npm run dev",
+    "build:client": "cd client && npm run build",
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "flatmate",
+    "chores",
+    "task-debt",
+    "shared-living",
+    "fullstack"
+  ],
+  "author": "Antigravity",
+  "license": "ISC"
+}
+

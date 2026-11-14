@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Avatar from '../common/Avatar';
 import Badge from '../common/Badge';
-import { Check, Trash2, ArrowRight, Clock, Maximize2, X } from 'lucide-react';
+import { Check, Trash2, ArrowRight, Clock, Maximize2, X, Pencil } from 'lucide-react';
 
 const itemEmojis = {
   onion: '🧅',
@@ -34,7 +34,7 @@ const getItemEmoji = (name = '') => {
   return '📦';
 };
 
-const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, currentUserId, loading }) => {
+const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, onEdit, currentUserId, loading }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
@@ -158,6 +158,17 @@ const ItemDebtCard = ({ itemDebt, onMarkReturned, onDelete, currentUserId, loadi
             >
               <Check className="w-3.5 h-3.5" />
               <span>Mark as Returned</span>
+            </button>
+          )}
+
+          {onEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit(itemDebt)}
+              className="p-2 min-w-[34px] min-h-[34px] flex items-center justify-center text-slate-400 hover:text-emerald-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title="Edit quantity & details"
+            >
+              <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
 

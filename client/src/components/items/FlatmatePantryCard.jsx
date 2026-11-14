@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import Avatar from '../common/Avatar';
-import Badge from '../common/Badge';
 import {
-  ChevronDown, ChevronUp, Check, Trash2, ArrowRight,
-  Clock, ArrowDownLeft, ArrowUpRight, CheckCircle2,
-  Maximize2, X, AlertCircle, ShoppingBag
+  ChevronDown, Check, Trash2, ArrowRight,
+  Clock, ArrowDownLeft, ArrowUpRight,
+  Maximize2, X, Pencil, Sparkles
 } from 'lucide-react';
 
 const itemEmojis = {
@@ -40,6 +39,7 @@ const FlatmatePantryCard = ({
   currentUserId,
   onMarkReturned,
   onDelete,
+  onEdit,
   defaultExpanded = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -82,7 +82,6 @@ const FlatmatePantryCard = ({
     }
   };
 
-  // Determine which tab to show by default if one has items and the other doesn't
   React.useEffect(() => {
     if (theyOweMe.length > 0) {
       setActiveTab('they_owe_me');
@@ -101,15 +100,20 @@ const FlatmatePantryCard = ({
       : returnedItems;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm hover:shadow-md transition-all overflow-hidden">
+    <div className="group relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700/80 transition-all duration-200 overflow-hidden">
       {/* ── CARD HEADER (Clickable Accordion) ── */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className="p-5 flex items-center justify-between gap-4 cursor-pointer select-none hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+        className="p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer select-none transition-colors"
       >
         {/* Left: Avatar + Flatmate Name */}
         <div className="flex items-center gap-3.5 min-w-0">
-          <Avatar name={member.name} color={member.avatarColor} size="md" />
+          <div className="relative flex-shrink-0">
+            <Avatar name={member.name} color={member.avatarColor} size="md" />
+            {totalActive > 0 && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 ring-2 ring-white dark:ring-slate-900 rounded-full" />
+            )}
+          </div>
           <div className="min-w-0">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
               <span>{member.name}</span>
@@ -121,21 +125,21 @@ const FlatmatePantryCard = ({
         {/* Right: Balance Badges & Chevron */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           {totalActive === 0 ? (
-            <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50">
               <Check className="w-3.5 h-3.5 text-emerald-500" />
-              All settled
+              <span>All settled</span>
             </span>
           ) : (
             <div className="flex items-center gap-1.5 flex-wrap justify-end">
               {theyOweMe.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-                  <ArrowUpRight className="w-3 h-3 text-emerald-500" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Owes you {theyOweMe.length}
                 </span>
               )}
               {iOweThem.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                  <ArrowDownLeft className="w-3 h-3 text-amber-500" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                   You owe {iOweThem.length}
                 </span>
               )}
@@ -144,7 +148,7 @@ const FlatmatePantryCard = ({
 
           <div
             className={`w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${
-              isExpanded ? 'rotate-180 bg-emerald-50 text-emerald-600 dark:bg-emerald-950' : ''
+              isExpanded ? 'rotate-180 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60' : ''
             }`}
           >
             <ChevronDown className="w-4 h-4" />
@@ -154,13 +158,13 @@ const FlatmatePantryCard = ({
 
       {/* ── EXPANDED ACCORDION BODY ── */}
       {isExpanded && (
-        <div className="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 p-4 sm:p-5">
+        <div className="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 p-4 sm:p-5">
           {/* Sub-Tabs: They Owe Me / I Owe Them / Returned */}
-          <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl mb-4 max-w-md">
+          <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl mb-4 max-w-md shadow-sm">
             <button
               type="button"
               onClick={() => setActiveTab('they_owe_me')}
-              className={`flex-1 py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === 'they_owe_me'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -168,7 +172,7 @@ const FlatmatePantryCard = ({
             >
               <span>They Owe Me</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
                   activeTab === 'they_owe_me'
                     ? 'bg-white/20 text-white'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
@@ -181,7 +185,7 @@ const FlatmatePantryCard = ({
             <button
               type="button"
               onClick={() => setActiveTab('i_owe_them')}
-              className={`flex-1 py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === 'i_owe_them'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -189,7 +193,7 @@ const FlatmatePantryCard = ({
             >
               <span>I Owe Them</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
                   activeTab === 'i_owe_them'
                     ? 'bg-white/20 text-white'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
@@ -240,14 +244,14 @@ const FlatmatePantryCard = ({
                 return (
                   <div
                     key={item._id}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3.5 sm:p-4 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                   >
                     {/* Left: Thumbnail + Item Details */}
                     <div className="flex items-start gap-3 min-w-0">
                       {item.imageUrl ? (
                         <div
                           onClick={() => setSelectedPhoto(item)}
-                          className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 cursor-pointer group shadow-sm border border-slate-200 dark:border-slate-700"
+                          className="relative w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 cursor-pointer group shadow-sm border border-slate-200 dark:border-slate-700"
                           title="Click to view full photo"
                         >
                           <img
@@ -256,20 +260,32 @@ const FlatmatePantryCard = ({
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                            <Maximize2 className="w-3 h-3" />
+                            <Maximize2 className="w-3.5 h-3.5" />
                           </div>
                         </div>
                       ) : (
-                        <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
                           {emoji}
                         </div>
                       )}
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                            {item.quantity} {item.unit} of {item.itemName}
+                          {/* Quantity Pill */}
+                          <span className={`px-2 py-0.5 rounded-lg text-xs font-extrabold ${
+                            isReturned
+                              ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                              : isI_Owe
+                              ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/40'
+                              : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40'
+                          }`}>
+                            {item.quantity} {item.unit}
+                          </span>
+
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                            {item.itemName}
                           </h4>
+
                           {isReturned ? (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
                               Returned
@@ -305,15 +321,28 @@ const FlatmatePantryCard = ({
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-2 self-end sm:self-center">
+                    <div className="flex items-center gap-1.5 self-end sm:self-center">
+                      {/* Mark Returned Button */}
                       {!isReturned && (
                         <button
                           type="button"
                           onClick={() => onMarkReturned(item._id)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 border border-emerald-200 dark:border-emerald-800 transition-colors shadow-sm"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 border border-emerald-200 dark:border-emerald-800 transition-all shadow-sm"
                         >
                           <Check className="w-3.5 h-3.5" />
                           <span>Mark Returned</span>
+                        </button>
+                      )}
+
+                      {/* Edit Button */}
+                      {onEdit && (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="p-2 min-w-[34px] min-h-[34px] flex items-center justify-center text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="Edit quantity & details"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                       )}
 
@@ -343,7 +372,7 @@ const FlatmatePantryCard = ({
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(item._id)}
-                          className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                          className="p-2 min-w-[34px] min-h-[34px] flex items-center justify-center text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                           title="Delete item record"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

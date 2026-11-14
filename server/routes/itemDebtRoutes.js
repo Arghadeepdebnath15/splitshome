@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getItemDebts,
   createItemDebt,
+  updateItemDebt,
   markItemReturned,
   deleteItemDebt
 } = require('../controllers/itemDebtController');
@@ -15,6 +16,7 @@ router.route('/')
   .get(getItemDebts)
   .post(createItemDebt);
 
+router.put('/:id', updateItemDebt);
 router.put('/:id/return', markItemReturned);
 router.delete('/:id', deleteItemDebt);
 

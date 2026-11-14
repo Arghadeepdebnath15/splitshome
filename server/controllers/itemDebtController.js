@@ -199,6 +199,64 @@ const markItemReturned = async (req, res, next) => {
   }
 };
 
+// @route PUT /api/items/:id
+const updateItemDebt = async (req, res, next) => {
+  try {
+    const itemDebt = await ItemDebt.findOne({ _id: req.params.id, flat: req.flatId });
+
+    if (!itemDebt) {
+      return res.status(404).json({ success: false, message: 'Item debt record not found.' });
+    }
+
+    const { quantity, unit, itemName, description, imageUrl } = req.body;
+
+    const changes = [];
+    if (quantity !== undefined && Number(quantity) > 0 && Number(quantity) !== itemDebt.quantity) {
+      changes.push(`quantity: ${itemDebt.quantity} -> ${quantity}`);
+      itemDebt.quantity = Number(quantity);
+    }
+    if (unit && unit.trim() !== itemDebt.unit) {
+      changes.push(`unit: ${itemDebt.unit} -> ${unit.trim()}`);
+      itemDebt.unit = unit.trim();
+    }
+    if (itemName && itemName.trim() !== itemDebt.itemName) {
+      changes.push(`item: ${itemDebt.itemName} -> ${itemName.trim()}`);
+      itemDebt.itemName = itemName.trim();
+    }
+    if (description !== undefined) {
+      itemDebt.description = description.trim();
+    }
+    if (imageUrl !== undefined) {
+      itemDebt.imageUrl = imageUrl;
+    }
+
+    if (changes.length > 0) {
+      itemDebt.history.push({
+        action: 'updated',
+        performedBy: req.user._id,
+        timestamp: new Date(),
+        note: `Updated by ${req.user.name}: ${changes.join(', ')}`
+      });
+    }
+
+    await itemDebt.save();
+
+    const populated = await ItemDebt.findById(itemDebt._id)
+      .populate('borrower', 'name username avatarColor email')
+      .populate('lender', 'name username avatarColor email');
+
+    emitToFlat(req.flatId.toString(), 'item_debt_updated', populated);
+
+    res.status(200).json({
+      success: true,
+      message: 'Item debt updated successfully',
+      itemDebt: populated
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @route DELETE /api/items/:id
 const deleteItemDebt = async (req, res, next) => {
   try {
@@ -224,6 +282,7 @@ const deleteItemDebt = async (req, res, next) => {
 module.exports = {
   getItemDebts,
   createItemDebt,
+  updateItemDebt,
   markItemReturned,
   deleteItemDebt
 };

@@ -51,3 +51,4 @@ export const compressImage = (file, maxWidth = 900, maxHeight = 900, quality = 0
     reader.onerror = (err) => reject(new Error('Failed to read image file'));
   });
 };
+

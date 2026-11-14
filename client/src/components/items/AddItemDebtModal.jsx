@@ -85,7 +85,11 @@ const AddItemDebtModal = ({ isOpen, onClose, onSubmit, loading }) => {
   };
 
   const adjustQty = (delta) => {
-    setQuantity(prev => Math.max(0.5, Number((Number(prev) + delta).toFixed(1))));
+    setQuantity(prev => {
+      const current = parseFloat(prev) || 0;
+      const next = current + delta;
+      return next > 0 ? (Number.isInteger(next) ? next : Number(next.toFixed(2))) : 1;
+    });
   };
 
   const handleImageChange = async (e) => {
@@ -384,18 +388,30 @@ const AddItemDebtModal = ({ isOpen, onClose, onSubmit, loading }) => {
               Quantity *
             </label>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => adjustQty(-0.5)}
-                className="w-8 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => adjustQty(-1)}
+                className="w-8 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
+                title="Decrease quantity"
+              >
                 <Minus className="w-3.5 h-3.5" />
               </button>
               <input
-                type="number" min="0.1" step="0.5" required
+                type="number"
+                min="0.01"
+                step="any"
+                required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
+                placeholder="1"
                 className="flex-1 min-w-0 px-2 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-center"
               />
-              <button type="button" onClick={() => adjustQty(0.5)}
-                className="w-8 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => adjustQty(1)}
+                className="w-8 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
+                title="Increase quantity"
+              >
                 <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
